@@ -7,32 +7,35 @@ import (
 
 type cacheItem struct {
 	value interface{}
-	readCh chan
-	writeCh chan
+	readCh chan int
+	writeCh chan int
 }
 
 
 
 func main() {
 	var sharedData map [int]cacheItem
-	var sdReadCh chan
-	var sdWrite chan
-	var done [10]chan;
-	var ec error;
+//	var sdReadCh chan int
+//	var sdWrite chan int
+	var done [10]chan int
+	var ec error
+	var i int
 
-	ec = initCache( "initData.dat", sharedData );
+	sharedData = make( map [int]cacheItem )
+	ec = initCache( "E:\\Users\\John\\go\\InteractiveReports\\src\\mycache\\initData.dat", sharedData )
 	if ( ec != nil ) {
-		Println( "Failed to read initialization data: %s", ec.Error() );
-		return;
+		fmt.Println( "Failed to read initialization data:", ec.Error() )
+		return
 	}
 
 	for i=0; i<10; i++ {
-		go sharedActor( "dataFile", i, done[i], sdRead, sdWrite );
+//		go sharedActor( "dataFile", i, done[i], sdRead, sdWrite )
+		ec = nil
 	}
 
 	for i=0; i<10; i++ {
 		<-done[i]
 	}
 
-	PrintSharedData( sharedData );
+//	PrintSharedData( sharedData )
 }

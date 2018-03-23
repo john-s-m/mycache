@@ -3,47 +3,63 @@ package main
 import (
 	"fmt"
 	"os"
+	"bufio"
 )
 
 
-func initCache( initFile string, cacheItems map [int] ) error {
-	var initLine  [1000]byte
-	var lineLen   int
+func initCache( initFile string, cacheItems map [int]cacheItem ) error {
+	var initLine  string
 	var key       int
 	var ival      int
 	var fval      float64
-	var sval      [1000]byte
+	var c         byte
+	var sval      *string
+	var cItem     *cacheItem
 
-	f, err := os.Open(filePath)
-	defer f.Close()
-
+	fmt.Println( initFile )
+	f, err := os.Open(initFile)
 	if err != nil {
 		return(err)
 	}
+	defer f.Close()
 
-	for _ ; err == nil; lineLen, err = fmt.Fscanln( f, initLine ) {
-		if ( err != nil ) break;
-		if ( lineLen < 4 ) continue;
-		
-		_, err = Sscanf( initLine, "%c", &c );
+
+	scanner := bufio.NewScanner(f)
+	scanner.Split(bufio.ScanLines)
+	for scanner.Scan() {
+		cItem = new( cacheItem )
+		cItem.readCh = make( chan int )
+		cItem.writeCh = make( chan int )
+		initLine = scanner.Text()
+		fmt.Println( "init:", initLine )
+		fmt.Println( "scanner:", scanner.Text() );
+		_, err = fmt.Sscanf( scanner.Text(), "%c", &c )
 		switch c {
-		    'i', 'd':
- 			_, err = fmt.Sscanf( initLine, "%c%d%d", &c, &key, &ival );
-			if ( err != nil ) continue;
-			cacheItems[key] = ival;
+		    case 'i', 'd':
+ 			_, err = fmt.Sscanf( scanner.Text(), "%c%d%d", &c, &key, &ival )
+			if ( err != nil ) {
+				continue
+			}
+			cItem.value = ival
+			fmt.Println( "KV: ", key, cItem.value );
 
-		    'f':
-			_, err = fmt.Sscanf( initLine, "%c%d%f", &c, &key, &fval );
-			if ( err != nil ) continue;
-			cacheItems[key] = fval;
+		    case 'f':
+			_, err = fmt.Sscanf( scanner.Text(), "%c%d%f", &c, &key, &fval )
+			if ( err != nil ) {
+				continue
+			}
+			cItem.value = fval
 
-		    's':
-			_, err = fmt.Sscanf( initLine, "%c%d%s", &c, &key, sval );
-			if ( err != nil ) continue;
-			s = new( [len(sval) + 1]byte )
-			copy( s, sval )
-			cacheItems[key] = *s
+		    case 's':
+			sval = new( string )
+			_, err = fmt.Sscanf( scanner.Text(), "%c%d%s", &c, &key, sval )
+			if ( err != nil ) {
+				continue
+			}
+			cItem.value = *sval
 		}
+		cacheItems[key] = *cItem
 	}
+	fmt.Println( "cache: ", cacheItems )
 	return( err )
 }
