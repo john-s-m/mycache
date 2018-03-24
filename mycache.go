@@ -21,21 +21,22 @@ func newCacheItem() *cacheItem {
 
 func main() {
 	var sharedData map [int]cacheItem
-//	var sdReadCh chan int
-//	var sdWrite chan int
+	var sdRead chan int
+	var sdWrite chan int
 	var done [10]chan int
 	var ec error
 	var i int
 
 	sharedData = make( map [int]cacheItem )
-	ec = initCache( "E:\\Users\\John\\go\\InteractiveReports\\src\\mycache\\initData.dat", sharedData )
+	ec = initCache( "initData.dat", sharedData )
+	fmt.Println( sharedData )
 	if ( ec != nil ) {
 		fmt.Println( "Failed to read initialization data:", ec.Error() )
 		return
 	}
 
 	for i=0; i<10; i++ {
-//		go sharedActor( "dataFile", i, done[i], sdRead, sdWrite )
+		go sharedActor( sharedData, "dataFile", i, &done[i], &sdRead, &sdWrite )
 		ec = nil
 	}
 
