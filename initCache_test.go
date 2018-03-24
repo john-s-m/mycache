@@ -6,14 +6,7 @@ import (
 	"os"
 )
 
-func initCache(initFile string, cacheItems map[int]cacheItem) error {
-	var key int
-	var ival int
-	var fval float64
-	var c byte
-	var sval *string
-	var cItem *cacheItem
-
+func initCache_test(initFile string, cacheItems *map[int]cacheItem) bool {
 	fmt.Println(initFile)
 	f, err := os.Open(initFile)
 	if err != nil {
@@ -24,7 +17,11 @@ func initCache(initFile string, cacheItems map[int]cacheItem) error {
 	scanner := bufio.NewScanner(f)
 	scanner.Split(bufio.ScanLines)
 	for scanner.Scan() {
-		cItem = newCacheItem()
+		var key int
+		var ival int
+		var fval float64
+		var c byte
+		var sval *string
 
 		_, err = fmt.Sscanf(scanner.Text(), "%c", &c)
 		switch c {
@@ -33,14 +30,18 @@ func initCache(initFile string, cacheItems map[int]cacheItem) error {
 			if err != nil {
 				continue
 			}
-			cItem.value = ival
+			if ( *cachItems[key].value != ival || *cachItems[key].readCh == nil || *cachItems[key].writeCh == nil ) {
+				return( false )
+			}
 
 		case 'f':
 			_, err = fmt.Sscanf(scanner.Text(), "%c%d%f", &c, &key, &fval)
 			if err != nil {
 				continue
 			}
-			cItem.value = fval
+			if ( *cachItems[key] != fval || *cachItems[key].readCh == nil || *cachItems[key].writeCh == nil ) {
+				return( false )
+			}
 
 		case 's':
 			sval = new(string)
@@ -48,10 +49,10 @@ func initCache(initFile string, cacheItems map[int]cacheItem) error {
 			if err != nil {
 				continue
 			}
-			cItem.value = *sval
+			if ( *cachItems[key] != sval  || *cachItems[key].readCh == nil || *cachItems[key].writeCh == nil ) {
+				return( false )
+			}
 		}
-		cacheItems[key] = *cItem
 	}
-	fmt.Println("initial cache: ", cacheItems)
-	return (err)
+	return( true )
 }

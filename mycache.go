@@ -11,7 +11,13 @@ type cacheItem struct {
 	writeCh chan int
 }
 
-
+func newCacheItem() *cacheItem {
+	var cItem *cacheItem
+	cItem = new(cacheItem)
+	cItem.readCh = make(chan int)
+	cItem.writeCh = make(chan int)
+	return( cItem )
+}
 
 func main() {
 	var sharedData map [int]cacheItem
