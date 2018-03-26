@@ -35,7 +35,9 @@ func main() {
 		return
 	}
 
+	i = 0
 	for i=0; i<10; i++ {
+		done[i] = make( chan int )
 		go sharedActor( sharedData, "dataFile", i, &done[i], &sdRead, &sdWrite )
 		ec = nil
 	}

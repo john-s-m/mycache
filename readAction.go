@@ -9,8 +9,9 @@ func readAction( scanner *bufio.Scanner, action *byte, key *int, value *string )
 	if ( scanner.Scan() )	{
 		_, err := fmt.Sscanf(scanner.Text(), "%c%d%s", action, key, value )
 		if ( err == nil ) {
-			return( true )
+			fmt.Printf( "Sscanf error\n" );
 		}
+		return( true )
 	}
 	return( false )
 }
