@@ -4,7 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"os"
-	"cacheMgr"
+	"mycache/cacheMgr"
 )
 
 func sharedActor( cm *cacheMgr.CacheMap, dataFilePrefix string, goRoutineId int, doneCh chan int ) {

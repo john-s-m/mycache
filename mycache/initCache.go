@@ -4,7 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"os"
-	"cacheMgr"
+	"mycache/cacheMgr"
 )
 
 func initCache(initFile string, cacheItems map[int]cacheMgr.CacheItem) error {

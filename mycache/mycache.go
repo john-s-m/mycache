@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"cacheMgr"
+	"mycache/cacheMgr"
 )
 
 
