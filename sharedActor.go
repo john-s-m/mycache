@@ -4,9 +4,10 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"cacheMgr"
 )
 
-func sharedActor( sharedData map[int]cacheItem, dataFilePrefix string, goRoutineId int, doneCh *chan int , sdRead *chan int, sdWrite *chan int ) {
+func sharedActor( cm *cacheMgr.CacheMap, dataFilePrefix string, goRoutineId int, doneCh chan int ) {
 	var dataFile string
 
 	dataFile = fmt.Sprintf( "%s%d.dat", dataFilePrefix, goRoutineId )
@@ -27,17 +28,15 @@ func sharedActor( sharedData map[int]cacheItem, dataFilePrefix string, goRoutine
 	for readAction( scanner, &action, &key, &value ) {
 		switch action {
 		case 'r':
-/*			*sdRead <- 1
-			var isWriteLocked int
-			isWriteLock <- *sdWrite
-			*sdWrite <- 1
-*/
-			fmt.Printf( "action: %c  key: %d map: %v\n", action, key, sharedData[key] )
-//			<- *sdRead
+			fmt.Printf( "action: %c  key: %d    value:%v\n", action, key, cm.Reader(key) )
 			
 		case 'w':
-			fmt.Printf( "action: %c  key: %d value: %v\n", action, key, value )
+			if ( cm.Reader(key) == nil ) {
+				cm.Inserter( key, value )
+			} else {
+				cm.Writer( key, value )
+			}				
 		}
 	}
-	*doneCh<- 1;
+	doneCh<- 1;
 }

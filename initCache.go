@@ -4,15 +4,16 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"cacheMgr"
 )
 
-func initCache(initFile string, cacheItems map[int]cacheItem) error {
+func initCache(initFile string, cacheItems map[int]cacheMgr.CacheItem) error {
 	var key int
 	var ival int
 	var fval float64
 	var c byte
 	var sval *string
-	var cItem *cacheItem
+	var cItem *cacheMgr.CacheItem
 
 	fmt.Println(initFile)
 	f, err := os.Open(initFile)
@@ -24,8 +25,6 @@ func initCache(initFile string, cacheItems map[int]cacheItem) error {
 	scanner := bufio.NewScanner(f)
 	scanner.Split(bufio.ScanLines)
 	for scanner.Scan() {
-		cItem = newCacheItem()
-
 		_, err = fmt.Sscanf(scanner.Text(), "%c", &c)
 		switch c {
 		case 'i', 'd':
@@ -33,14 +32,14 @@ func initCache(initFile string, cacheItems map[int]cacheItem) error {
 			if err != nil {
 				continue
 			}
-			cItem.value = ival
+			cItem = cacheMgr.NewCacheItem( ival, false )
 
 		case 'f':
 			_, err = fmt.Sscanf(scanner.Text(), "%c%d%f", &c, &key, &fval)
 			if err != nil {
 				continue
 			}
-			cItem.value = fval
+			cItem = cacheMgr.NewCacheItem( fval, false )
 
 		case 's':
 			sval = new(string)
@@ -48,7 +47,7 @@ func initCache(initFile string, cacheItems map[int]cacheItem) error {
 			if err != nil {
 				continue
 			}
-			cItem.value = *sval
+			cItem = cacheMgr.NewCacheItem( *sval, false )
 		}
 		cacheItems[key] = *cItem
 	}

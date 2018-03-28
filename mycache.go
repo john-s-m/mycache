@@ -2,49 +2,34 @@ package main
 
 import (
 	"fmt"
+	"cacheMgr"
 )
 
 
-type cacheItem struct {
-	value interface{}
-	readCh chan int
-	writeCh chan int
-}
-
-func newCacheItem() *cacheItem {
-	var cItem *cacheItem
-	cItem = new(cacheItem)
-	cItem.readCh = make(chan int)
-	cItem.writeCh = make(chan int)
-	return( cItem )
-}
-
 func main() {
-	var sharedData map [int]cacheItem
-	var sdRead chan int
-	var sdWrite chan int
-	var done [10]chan int
+	var cm *cacheMgr.CacheMap
+	var done map[int]chan int
 	var ec error
 	var i int
+	var count int = 10
 
-	sharedData = make( map [int]cacheItem )
-	ec = initCache( "initData.dat", sharedData )
-	fmt.Println( sharedData )
+	done = make( map[int] chan int )
+	cm = cacheMgr.NewCacheMap()
+	ec = initCache( "initData.dat", cm.SharedMap )
+	fmt.Println( cm.SharedMap )
 	if ( ec != nil ) {
 		fmt.Println( "Failed to read initialization data:", ec.Error() )
 		return
 	}
 
-	i = 0
-	for i=0; i<10; i++ {
+	for i=0; i<count; i++ {
 		done[i] = make( chan int )
-		go sharedActor( sharedData, "dataFile", i, &done[i], &sdRead, &sdWrite )
-		ec = nil
+		go sharedActor( cm, "dataFile", i, done[i] )
 	}
 
-	for i=0; i<10; i++ {
+	for i=0; i<count; i++ {
 		<-done[i]
 	}
 
-//	PrintSharedData( sharedData )
+	fmt.Println( cm.SharedMap )
 }
