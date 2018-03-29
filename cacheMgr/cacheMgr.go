@@ -11,32 +11,33 @@ type CacheKeyValue struct {
 	Value interface{}
 }
 
+type SafeItemAccess interface {
+	Reader() interface{}
+	Writer( interface{} ) error
+	serializer()
+}
+
 type CacheMap struct {
 	SharedMap map [int]CacheItem
-	readCh chan interface{}
 	readKeyCh chan int
+	readCh chan interface{}
 	writeCh chan CacheKeyValue
 	insertCh chan CacheKeyValue
 }
 
-type SafeItemAccess interface {
-	Reader() interface{}
-	Writer( interface{} )
-	serializer()
-}
-
 type SafeMapAccess interface {
 	Reader( key int ) interface{}
-	Writer( key int, value interface{} )
-	Inserter( key int, ci *CacheItem )
+	Writer( key int, value interface{} ) error
+	Updater( key int, value interface{} ) error
+	Inserter( key int, value interface{} ) error
 	serializer()
 }
 
-func NewCacheItem( val interface{}, goRtn bool ) *CacheItem {
+func NewCacheItem( val interface{}, needSerialization bool ) *CacheItem {
 	var cItem *CacheItem
 	cItem = new(CacheItem)
 	cItem.Value = val
-	if goRtn {
+	if needSerialization {
 		cItem.readCh = make(chan interface{} )
 		cItem.writeCh = make(chan interface{} )
 		go cItem.serializer()
@@ -48,8 +49,9 @@ func (ci CacheItem) Reader() interface{} {
 	return <- ci.readCh
 }
 
-func (ci CacheItem) Writer( val interface{} ) {
+func (ci CacheItem) Writer( val interface{} ) error {
 	ci.writeCh <- val
+	return nil
 }
 
 func (ci CacheItem) serializer () {
@@ -64,8 +66,8 @@ func (ci CacheItem) serializer () {
 func NewCacheMap() *CacheMap {
 	cm := new( CacheMap )
 	cm.SharedMap = make( map [int]CacheItem )
-	cm.readCh = make( chan interface{} )
 	cm.readKeyCh = make( chan int )
+	cm.readCh = make( chan interface{} )
 	cm.writeCh = make( chan CacheKeyValue )
 	cm.insertCh = make( chan CacheKeyValue )
 	go cm.serializer()
@@ -78,14 +80,24 @@ func (cm CacheMap) Reader( key int ) interface{} {
 	return <-cm.readCh
 }
 
-func (cm CacheMap) Writer( key int, val interface{} ) {
-	keyVal := CacheKeyValue{ key, val }
-	cm.writeCh <- keyVal
+func (cm CacheMap) Writer( key int, val interface{} ) error {
+	if ( cm.Reader(key) == nil ) {
+		return( cm.Inserter( key, val ) )
+	} else {
+		return( cm.Updater( key, val ) )
+	}
 }
 
-func (cm CacheMap) Inserter( key int, val interface{} ) {
+func (cm CacheMap) Updater( key int, val interface{} ) error {
+	keyVal := CacheKeyValue{ key, val }
+	cm.writeCh <- keyVal
+	return nil
+}
+
+func (cm CacheMap) Inserter( key int, val interface{} ) error {
 	keyVal := CacheKeyValue{ key, val }
 	cm.insertCh <- keyVal
+	return nil
 }
 
 func (cm CacheMap) serializer () {

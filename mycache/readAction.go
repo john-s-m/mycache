@@ -4,7 +4,7 @@ import (
 	"bufio"
 	"strings"
 	"strconv"
-	"fmt"
+//	"fmt"
 )
 
 func readAction( scanner *bufio.Scanner, action *byte, key *int, value *interface{} ) bool {
@@ -41,6 +41,6 @@ func readAction( scanner *bufio.Scanner, action *byte, key *int, value *interfac
 		}
 	}
 			
-	fmt.Printf( "action: %c key: %d value:%v\n", *action, *key, *value )
+//	fmt.Printf( "action: %c key: %d value:%v\n", *action, *key, *value )
 	return( true )
 }

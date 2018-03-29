@@ -17,7 +17,7 @@ func sharedActor( cm *cacheMgr.CacheMap, dataFilePrefix string, goRoutineId int,
 	}
 	defer f.Close()
 
-	fmt.Printf( "Opened %s\n", dataFile )
+//	fmt.Printf( "Opened %s\n", dataFile )
 	scanner := bufio.NewScanner(f)
 	scanner.Split(bufio.ScanLines)
 
@@ -31,11 +31,7 @@ func sharedActor( cm *cacheMgr.CacheMap, dataFilePrefix string, goRoutineId int,
 			fmt.Printf( "read results  key: %d    value:%v\n", key, cm.Reader(key) )
 			
 		case 'w':
-			if ( cm.Reader(key) == nil ) {
-				cm.Inserter( key, value )
-			} else {
-				cm.Writer( key, value )
-			}				
+			cm.Writer( key, value )
 		}
 	}
 	doneCh<- 1;
