@@ -21,14 +21,14 @@ func sharedActor( cm *cacheMgr.CacheMap, dataFilePrefix string, goRoutineId int,
 	scanner := bufio.NewScanner(f)
 	scanner.Split(bufio.ScanLines)
 
-	var value    string
+	var value    interface{}
 	var key      int
 	var action   byte
 
 	for readAction( scanner, &action, &key, &value ) {
 		switch action {
 		case 'r':
-			fmt.Printf( "action: %c  key: %d    value:%v\n", action, key, cm.Reader(key) )
+			fmt.Printf( "read results  key: %d    value:%v\n", key, cm.Reader(key) )
 			
 		case 'w':
 			if ( cm.Reader(key) == nil ) {

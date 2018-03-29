@@ -96,6 +96,7 @@ func (cm CacheMap) serializer () {
 		case keyVal = <-cm.writeCh:
 			ci := cm.SharedMap[keyVal.Key]
 			ci.Value = keyVal.Value
+			cm.SharedMap[keyVal.Key] = ci
 			
 		case key = <-cm.readKeyCh:
 			cm.readCh<- cm.SharedMap[key].Value
