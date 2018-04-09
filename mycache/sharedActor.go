@@ -35,8 +35,6 @@ func multiplexActor( cmm *cacheMgr.CacheMapMultiplex, pAction *ActionItem, reade
 			break
 		}
 
-		fmt.Printf( "a: %c   k:%d  v: %d\n", pAction.ActionValues.Action, pAction.ActionValues.Key, pAction.ActionValues.Value )
-
 		switch pAction.ActionValues.Action {
 		case 'r':
 			val, err := cmm.Reader(pAction.ActionValues.Key, readerId)
@@ -45,6 +43,7 @@ func multiplexActor( cmm *cacheMgr.CacheMapMultiplex, pAction *ActionItem, reade
 			}
 			
 		case 'w':
+			fmt.Printf( "writing key:%d  value: %d\n", pAction.ActionValues.Key, pAction.ActionValues.Value )
 			cmm.Writer( pAction.ActionValues.Key, pAction.ActionValues.Value, readerId )
 		}
 	}

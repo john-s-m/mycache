@@ -5,11 +5,14 @@ import (
 	"mycache/cacheMgr"
 	"os"
 	"strings"
+	"strconv"
 )
 
 func main() {
 	var useSerializer bool = true
 	var useRandomizer bool = false
+	var count int = 10
+	var eventCount = 100
 
 	for a := range os.Args {
 		switch {
@@ -17,12 +20,18 @@ func main() {
 			useSerializer = false
 		case strings.Compare( os.Args[a], "-r") == 0 :
 			useRandomizer = true
+		case strings.Compare( os.Args[a], "-e") == 0 :
+			a++
+			fmt.Printf( "a: %d  arg: %s\n", a, os.Args[a] )
+			eventCount, _ = strconv.Atoi( os.Args[a] )
+		case strings.Compare( os.Args[a], "-t") == 0 :
+			a++
+			count, _ = strconv.Atoi( os.Args[a] )
 		}
 	}
 	
 
 	var done map[int]chan int
-	var count int = 10
 	var ec error
 	var i int
 	var openFileList []*os.File
@@ -53,13 +62,13 @@ func main() {
 
 	var pActionList []*ActionItem
 
-	fmt.Printf( "Args: Serial:%t Rand:%t\n", useSerializer, useRandomizer )
+	fmt.Printf( "Args: Serial:%t Rand:%t Threads:%d  Events:%d\n", useSerializer, useRandomizer, count, eventCount )
 	
 	for i = 0; i < count; i++ {
 		var pAction *ActionItem
 		
 		if useRandomizer {
-			pAction = NewRandomActor()
+			pAction = NewRandomActor( eventCount )
 			fmt.Printf( "RandomActor: %v\n", pAction )
 			if ( pAction == nil ) {
 				fmt.Println( "Failed to initialize random number actor" )

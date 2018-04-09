@@ -7,7 +7,7 @@ import (
 )
 
 func TestNewRandomActor( t *testing.T) {
-	pAction := NewRandomActor()
+	pAction := NewRandomActor(10)
 	if ( pAction == nil ) {
 		t.Errorf( "NewRandomActor failed, got nil pointer back\n" );
 		return
@@ -19,15 +19,29 @@ func TestNewRandomActor( t *testing.T) {
 	}
 */
 	var s string = reflect.TypeOf( pAction.Parameters ).String()
-	if ( strings.Compare(s, "*rand.Rand" ) != 0 ) {
-		t.Errorf( "NewRandomActor failed, expected Parameter to have a \"*rand.Rand\" got \"%s\" \n", s )
+	if ( strings.Compare(s, "*main.RandomInjectorParameters" ) != 0 ) {
+		t.Errorf( "NewRandomActor failed, expected Parameter to have a \"*main.RandomInjectorParameters\" got \"%s\" \n", s )
+	}
+
+	pParms, _ := pAction.Parameters.(*RandomInjectorParameters)
+	if ( pParms.remainingEvents != 10 ) {
+		t.Errorf( "NewRandomActor failed, expected Parameter.remainingEvents to be 10 got %d \n", pParms.remainingEvents )
+	}
+
+	if ( pParms.randomizer == nil ) {
+		t.Errorf( "NewRandomActor failed to initialize the randomizer\n")
 	}
 }
 
 func TestrandomInjector(t *testing.T) {
-	pAction := NewRandomActor()
+	pAction := NewRandomActor(100)
 
-	for i :=0; i < 100; i++ {
+	var i int = 0
+	for  {
+		if ( i > 100 ) {
+			t.Errorf( "TestrandomInjector failed, Injector did not return EOF\n" )
+		}
+
 		err := pAction.Injector( &(pAction.Parameters), &(pAction.ActionValues) )
 
 		if ( err != nil ) {
@@ -47,6 +61,6 @@ func TestrandomInjector(t *testing.T) {
 		if ( pAction.ActionValues.Value == nil ) {
 			t.Errorf( "TestrandomInjector - nil Value\n" )
 		}
+		i++
 	}
 }
-	

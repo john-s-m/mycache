@@ -45,24 +45,39 @@ func NewFileActor( dataFilePrefix string, goRoutineId int ) (*ActionItem, *os.Fi
 
 }
 
-func NewRandomActor() *ActionItem {
+type RandomInjectorParameters struct {
+	randomizer        *rand.Rand
+	remainingEvents   int
+}
+
+func NewRandomActor( eventCount int ) *ActionItem {
 	pA := new( ActionItem )
-	pA.Parameters = rand.New(rand.NewSource(int64(time.Now().Nanosecond())))
+	pParms := new( RandomInjectorParameters )
+	pParms.remainingEvents = eventCount
+	pParms.randomizer = rand.New(rand.NewSource(int64(time.Now().Nanosecond())))
+	pA.Parameters = pParms
 	pA.Injector = randomInjector
 	return pA
 }
 
 func randomInjector( parms *interface{}, pA *ActionInfo )(error) {
 	p := *parms
-	seededPtr, ok := p.(*rand.Rand)
+	pParms, ok := p.(*RandomInjectorParameters)
 
 	if false {
 		fmt.Println("Never gets here, just want to import fmt")
 	}
 	
 	if ! ok {
-		return errors.New( "randomInjector: Could not convert parms *interface{} to a rand.Rand" )
+		return errors.New( "randomInjector: Could not convert parms *interface{} to a *RandomInjectorParamters" )
 	}
+
+	if ( pParms.remainingEvents == 0 ) {
+		return ( io.EOF )
+	}
+	pParms.remainingEvents--
+
+	seededPtr := pParms.randomizer
 
 	if seededPtr == nil {
 		return errors.New( "randomInjector: nil Parameters/*rand.Rand value" )
@@ -91,12 +106,6 @@ func randomInjector( parms *interface{}, pA *ActionInfo )(error) {
 	rValue = seededPtr.Int()
 	pA.Key = rValue % 100
 
-	rValue = seededPtr.Int()
-	if ( rValue % 10000 ) == 0 {
-		fmt.Printf( "exit random: %d\n", rValue )
-		return ( io.EOF )
-	}
-
 	return nil
 }
 
@@ -118,3 +127,37 @@ func fileInjector( parms *interface{}, pA *ActionInfo )(error) {
 
 	return nil
 }
+
+type ArrayInjectorParameters struct {
+	actionList  []ActionInfo
+	pos         int
+}
+
+func NewArrayActor( preparedActionArrray []ActionInfo ) *ActionItem {
+	pA := new( ActionItem )
+	pParms := new( ArrayInjectorParameters )
+	pParms.actionList = preparedActionArrray
+	pParms.pos = 0
+	pA.Parameters = pParms
+	pA.Injector = arrayInjector
+	return pA
+}
+
+func arrayInjector( parms *interface{}, pA *ActionInfo )(error) {
+	p := *parms
+	pParms, ok := p.(*ArrayInjectorParameters)
+
+	if ! ok {
+		return errors.New( "arrayInjector: Could not convert parms *interface{} to a *ArrayInjectorParamters" )
+	}
+
+	if ( pParms.pos == len(pParms.actionList) ) {
+		return ( io.EOF )
+	}
+
+	*pA = pParms.actionList[pParms.pos]
+	pParms.pos++
+	return nil
+}
+
+	
