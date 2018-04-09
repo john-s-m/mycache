@@ -1,49 +1,16 @@
 package main
 
 import (
-	"bufio"
 	"fmt"
-	"os"
 	"mycache/cacheMgr"
-	"strings"
-	"time"
-	"math/rand"
 )
 
 
-func NewFileActor( dataFilePrefix string, goRoutineId int ) (*ActionItem, *os.File) {
-	var dataFile string
-
-	dataFile = fmt.Sprintf( "%s%d.dat", dataFilePrefix, goRoutineId )
-	f, err := os.Open(dataFile)
-	if err != nil {
-		return nil, nil
-	}
-
-	pA := new( ActionItem )
-//	pA.ActionValues = make( ActionInfo )
-	pA.Injector = fileInjector
-	scanner := bufio.NewScanner(f)
-	scanner.Split(bufio.ScanLines)
-
-	pA.Parameters = scanner
-	return pA, f
-
-}
-
-func NewRandomActor() *ActionItem {
-	pA := new( ActionItem )
-	pA.Parameters = rand.New(rand.NewSource(int64(time.Now().Nanosecond())))
-	pA.Injector = randomInjector
-//	pA.ActionValues = make( ActionInfo )
-	return pA
-}
 
 func serializedActor( cm *cacheMgr.CacheMap, pAction *ActionItem, goRoutineId int, doneCh chan int ) {
 	for {
-		localAction := *pAction
-		err := pAction.Injector( &localAction.Parameters, &localAction.ActionValues )
-		if ( strings.Compare( err.Error(), "EOF" ) == 0 ) {
+		err := pAction.Injector( &(pAction.Parameters), &(pAction.ActionValues) )
+		if ( err != nil ) {
 			fmt.Println( err.Error() )
 			break
 		}
@@ -62,10 +29,8 @@ func serializedActor( cm *cacheMgr.CacheMap, pAction *ActionItem, goRoutineId in
 
 func multiplexActor( cmm *cacheMgr.CacheMapMultiplex, pAction *ActionItem, readerId int, doneCh chan int ) {
 	for {
-//		localAction := *pAction
-//		err := pAction.Injector( &localAction.Parameters, &localAction.ActionValues )
 		err := pAction.Injector( &(pAction.Parameters), &(pAction.ActionValues) )
-		if ( err != nil && strings.Compare( err.Error(), "EOF" ) == 0 ) {
+		if ( err != nil ) {
 			fmt.Println( err.Error() )
 			break
 		}

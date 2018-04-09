@@ -84,13 +84,18 @@ func (ci CacheItem) serializer () {
 	}
 }
 
-func NewCacheMap() *CacheMap {
+func NewCacheMapStruct() *CacheMap {
 	cm := new( CacheMap )
 	cm.SharedMap = make( map [int]CacheItem )
 	cm.readKeyCh = make( chan int )
 	cm.readCh = make( chan interface{} )
 	cm.writeCh = make( chan CacheKeyValue )
 	cm.insertCh = make( chan CacheKeyValue )
+	return( cm )
+}
+
+func NewCacheMap() *CacheMap {
+	cm := NewCacheMapStruct()
 	go cm.serializer()
 	return( cm )
 }

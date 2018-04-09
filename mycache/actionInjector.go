@@ -8,8 +8,9 @@ import (
 	"bufio"
 	"io"
 	"errors"
+	"time"
+	"os"
 )
-
 
 type ActionInfo struct {
 	Action byte
@@ -23,6 +24,32 @@ type ActionItem struct {
 	Parameters interface{}
 	ActionValues ActionInfo
 	Injector InjectorFunction
+}
+
+func NewFileActor( dataFilePrefix string, goRoutineId int ) (*ActionItem, *os.File) {
+	var dataFile string
+
+	dataFile = fmt.Sprintf( "%s%d.dat", dataFilePrefix, goRoutineId )
+	f, err := os.Open(dataFile)
+	if err != nil {
+		return nil, nil
+	}
+
+	pA := new( ActionItem )
+	pA.Injector = fileInjector
+	scanner := bufio.NewScanner(f)
+	scanner.Split(bufio.ScanLines)
+
+	pA.Parameters = scanner
+	return pA, f
+
+}
+
+func NewRandomActor() *ActionItem {
+	pA := new( ActionItem )
+	pA.Parameters = rand.New(rand.NewSource(int64(time.Now().Nanosecond())))
+	pA.Injector = randomInjector
+	return pA
 }
 
 func randomInjector( parms *interface{}, pA *ActionInfo )(error) {
@@ -51,7 +78,7 @@ func randomInjector( parms *interface{}, pA *ActionInfo )(error) {
 			pA.Value = seededPtr.Int() % 10000
 
 		case rValue < 8:
-			pA.Value = seededPtr.Float64()
+			pA.Value = seededPtr.Float64() * 10000
 
 		default:
 			var buffer bytes.Buffer

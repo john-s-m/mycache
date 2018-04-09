@@ -53,7 +53,7 @@ func main() {
 
 	var pActionList []*ActionItem
 
-	fmt.Printf( "Args: Serial:%b Rand:%b\n", useSerializer, useRandomizer )
+	fmt.Printf( "Args: Serial:%t Rand:%t\n", useSerializer, useRandomizer )
 	
 	for i = 0; i < count; i++ {
 		var pAction *ActionItem
