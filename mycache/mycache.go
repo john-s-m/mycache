@@ -9,14 +9,23 @@ import (
 
 func main() {
 	var useSerializer bool = true
-	if (len(os.Args) > 1) && ( strings.Compare( os.Args[1], "-m") == 0 ) {
-		useSerializer = false
+	var useRandomizer bool = false
+
+	for a := range os.Args {
+		switch {
+		case strings.Compare( os.Args[a], "-m") == 0 :
+			useSerializer = false
+		case strings.Compare( os.Args[a], "-r") == 0 :
+			useRandomizer = true
+		}
 	}
+	
 
 	var done map[int]chan int
 	var count int = 10
 	var ec error
 	var i int
+	var openFileList []*os.File
 
 	done = make(map[int]chan int)
 	for i = 0; i < count; i++ {
@@ -42,11 +51,37 @@ func main() {
 	}
 	fmt.Println(*mapPointer)
 
+	var pActionList []*ActionItem
+
+	fmt.Printf( "Args: Serial:%b Rand:%b\n", useSerializer, useRandomizer )
+	
+	for i = 0; i < count; i++ {
+		var pAction *ActionItem
+		
+		if useRandomizer {
+			pAction = NewRandomActor()
+			fmt.Printf( "RandomActor: %v\n", pAction )
+			if ( pAction == nil ) {
+				fmt.Println( "Failed to initialize random number actor" )
+				return
+			}
+		} else {
+			var pFile *os.File
+			pAction, pFile = NewFileActor( "dataFile", i )
+			if ( pAction == nil || pFile == nil ) {
+				fmt.Printf( "failed to open datafile%d.dat\n", i )
+				return
+			}
+			openFileList = append( openFileList, pFile )
+		}
+		pActionList = append( pActionList, pAction )
+	}
+	
 	if useSerializer {
 		fmt.Println( "Using Serializer" )
 
 		for i = 0; i < count; i++ {
-			go sharedActor(cm, "dataFile", i, done[i])
+			go serializedActor(cm, pActionList[ i ], i, done[i])
 		}
 	} else {
 		fmt.Println( "Using Multiplexer" )
@@ -59,7 +94,7 @@ func main() {
 		fmt.Println( "all routines started" );
 
 		for i = 0; i < count; i++ {
-			go multiplexActor( cmm, "dataFile", i, done[i] )
+			go multiplexActor( cmm, pActionList[ i ], i, done[i] )
 		}
 	}
 	
@@ -67,5 +102,9 @@ func main() {
 		<-done[i]
 	}
 
+	for f := range openFileList {
+		openFileList[f].Close()
+	}
+	
 	fmt.Println(*mapPointer)
 }

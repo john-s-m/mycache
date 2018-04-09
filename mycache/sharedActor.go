@@ -5,73 +5,82 @@ import (
 	"fmt"
 	"os"
 	"mycache/cacheMgr"
+	"strings"
+	"time"
+	"math/rand"
 )
 
-func sharedActor( cm *cacheMgr.CacheMap, dataFilePrefix string, goRoutineId int, doneCh chan int ) {
+
+func NewFileActor( dataFilePrefix string, goRoutineId int ) (*ActionItem, *os.File) {
 	var dataFile string
 
 	dataFile = fmt.Sprintf( "%s%d.dat", dataFilePrefix, goRoutineId )
 	f, err := os.Open(dataFile)
 	if err != nil {
-		return
+		return nil, nil
 	}
-	defer f.Close()
 
-//	fmt.Printf( "Opened %s\n", dataFile )
+	pA := new( ActionItem )
+//	pA.ActionValues = make( ActionInfo )
+	pA.Injector = fileInjector
 	scanner := bufio.NewScanner(f)
 	scanner.Split(bufio.ScanLines)
 
-	var value    interface{}
-	var key      int
-	var action   byte
+	pA.Parameters = scanner
+	return pA, f
 
-	for readAction( scanner, &action, &key, &value ) {
-		switch action {
+}
+
+func NewRandomActor() *ActionItem {
+	pA := new( ActionItem )
+	pA.Parameters = rand.New(rand.NewSource(int64(time.Now().Nanosecond())))
+	pA.Injector = randomInjector
+//	pA.ActionValues = make( ActionInfo )
+	return pA
+}
+
+func serializedActor( cm *cacheMgr.CacheMap, pAction *ActionItem, goRoutineId int, doneCh chan int ) {
+	for {
+		localAction := *pAction
+		err := pAction.Injector( &localAction.Parameters, &localAction.ActionValues )
+		if ( strings.Compare( err.Error(), "EOF" ) == 0 ) {
+			fmt.Println( err.Error() )
+			break
+		}
+
+		switch pAction.ActionValues.Action {
 		case 'r':
-			fmt.Printf( "read results  key: %d    value:%v\n", key, cm.Reader(key) )
+			fmt.Printf( "read results  key: %d    value:%v\n", pAction.ActionValues.Key, cm.Reader(pAction.ActionValues.Key) )
 			
 		case 'w':
-			cm.Writer( key, value )
+			cm.Writer( pAction.ActionValues.Key, pAction.ActionValues.Value )
 		}
 	}
 	doneCh<- 1;
 }
 
 
-func multiplexActor( cmm *cacheMgr.CacheMapMultiplex, dataFilePrefix string, readerId int, doneCh chan int ) {
-	var dataFile string
+func multiplexActor( cmm *cacheMgr.CacheMapMultiplex, pAction *ActionItem, readerId int, doneCh chan int ) {
+	for {
+//		localAction := *pAction
+//		err := pAction.Injector( &localAction.Parameters, &localAction.ActionValues )
+		err := pAction.Injector( &(pAction.Parameters), &(pAction.ActionValues) )
+		if ( err != nil && strings.Compare( err.Error(), "EOF" ) == 0 ) {
+			fmt.Println( err.Error() )
+			break
+		}
 
-	dataFile = fmt.Sprintf( "%s%d.dat", dataFilePrefix, readerId )
-	f, err := os.Open(dataFile)
-	if err != nil {
-		return
-	}
-	defer f.Close()
+		fmt.Printf( "a: %c   k:%d  v: %d\n", pAction.ActionValues.Action, pAction.ActionValues.Key, pAction.ActionValues.Value )
 
-//	fmt.Printf( "Opened %s\n", dataFile )
-	scanner := bufio.NewScanner(f)
-	scanner.Split(bufio.ScanLines)
-
-	var value    interface{}
-	var key      int
-	var action   byte
-
-	if ( err != nil ) {
-		fmt.Printf( "Failed to add new reader, go routine multiplexActor exiting: %s\n", err )
-		doneCh<- 1;
-		return
-	}
-
-	for readAction( scanner, &action, &key, &value ) {
-		switch action {
+		switch pAction.ActionValues.Action {
 		case 'r':
-			val, err := cmm.Reader(key, readerId)
+			val, err := cmm.Reader(pAction.ActionValues.Key, readerId)
 			if ( err == nil ) {
-				fmt.Printf( "read results  key: %d    value:%v\n", key, val )
+				fmt.Printf( "read results  key: %d    value:%v\n", pAction.ActionValues.Key, val )
 			}
 			
 		case 'w':
-			cmm.Writer( key, value, readerId )
+			cmm.Writer( pAction.ActionValues.Key, pAction.ActionValues.Value, readerId )
 		}
 	}
 	doneCh<- 1;
