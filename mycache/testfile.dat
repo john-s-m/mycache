@@ -1,0 +1,13 @@
+r 2
+r 7
+w 9 s bye
+w 10 i 25
+r 9
+w 7 i 66
+r 9
+r 10
+w 2 s bye bye world
+r 9
+r 2
+r 7
+r 9

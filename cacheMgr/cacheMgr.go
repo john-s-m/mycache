@@ -84,13 +84,18 @@ func (ci CacheItem) serializer () {
 	}
 }
 
-func NewCacheMap() *CacheMap {
+func NewCacheMapStruct() *CacheMap {
 	cm := new( CacheMap )
 	cm.SharedMap = make( map [int]CacheItem )
 	cm.readKeyCh = make( chan int )
 	cm.readCh = make( chan interface{} )
 	cm.writeCh = make( chan CacheKeyValue )
 	cm.insertCh = make( chan CacheKeyValue )
+	return( cm )
+}
+
+func NewCacheMap() *CacheMap {
+	cm := NewCacheMapStruct()
 	go cm.serializer()
 	return( cm )
 }
@@ -159,8 +164,26 @@ func (cmm *CacheMapMultiplex) AddReader() ( int, error ) {
 func (cmm *CacheMapMultiplex) unlockForward( inputCh chan int, outputCh chan int ) {
 	for {
 		select {
-		case <-inputCh:
+		case i := <-inputCh:
+			if ( i == -1 ) {
+				fmt.Println( "unlockForward exiting" )
+				return
+			}
 		case outputCh <- 1:
+		}
+	}
+}
+
+func (cmm *CacheMapMultiplex) TerminateForwardGR() {
+	fmt.Println( "terminating unlockForward threads" )
+	for _, ch := range cmm.unlockChArray {
+		for {
+			select {
+			case <-ch:
+			default:
+				ch <- -1
+				break;
+			}
 		}
 	}
 }
