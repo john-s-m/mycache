@@ -162,14 +162,25 @@ func (cmm *CacheMapMultiplex) AddReader() ( int, error ) {
 }
 	
 func (cmm *CacheMapMultiplex) unlockForward( inputCh chan int, outputCh chan int ) {
+	var isLocked bool = true
+	
 	for {
-		select {
-		case i := <-inputCh:
+		if isLocked {
+			i := <-inputCh
 			if ( i == -1 ) {
-				fmt.Println( "unlockForward exiting" )
-				return
+				break
 			}
-		case outputCh <- 1:
+			isLocked = false
+		} else {
+			select {
+			case i := <-inputCh:
+				if ( i == -1 ) {
+					break
+				}
+				isLocked = false
+			case outputCh <- 1:
+				isLocked = true
+			}
 		}
 	}
 }
@@ -292,5 +303,5 @@ func (cmm *CacheMapMultiplex) StartAllRoutines() error {
 }
 
 func doNothing() {
-	fmt.Println( "doNothing" );
+	fmt.Println( "doNothing" ); // just so it doesn't complain about importing fmt when I remove all prints
 }

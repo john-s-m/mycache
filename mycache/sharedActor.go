@@ -37,7 +37,8 @@ func multiplexActor( cmm *cacheMgr.CacheMapMultiplex, pAction *ActionItem, reade
 
 		switch pAction.ActionValues.Action {
 		case 'r':
-			val, err := cmm.Reader(pAction.ActionValues.Key, readerId)
+			val, err :=
+			cmm.Reader(pAction.ActionValues.Key, readerId)
 			if ( err == nil ) {
 				fmt.Printf( "read results  key: %d    value:%v\n", pAction.ActionValues.Key, val )
 			}

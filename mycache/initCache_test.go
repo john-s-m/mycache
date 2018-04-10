@@ -6,7 +6,7 @@ import (
 	"strings"
 )
 
-func TestinitCache( t *testing.T) {
+func TestInitCache( t *testing.T) {
 	initFile := "testfile.dat"
 
 	cm := cacheMgr.NewCacheMapStruct()

@@ -69,7 +69,6 @@ func main() {
 		
 		if useRandomizer {
 			pAction = NewRandomActor( eventCount )
-			fmt.Printf( "RandomActor: %v\n", pAction )
 			if ( pAction == nil ) {
 				fmt.Println( "Failed to initialize random number actor" )
 				return

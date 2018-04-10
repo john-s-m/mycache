@@ -64,10 +64,6 @@ func randomInjector( parms *interface{}, pA *ActionInfo )(error) {
 	p := *parms
 	pParms, ok := p.(*RandomInjectorParameters)
 
-	if false {
-		fmt.Println("Never gets here, just want to import fmt")
-	}
-	
 	if ! ok {
 		return errors.New( "randomInjector: Could not convert parms *interface{} to a *RandomInjectorParamters" )
 	}
@@ -158,6 +154,10 @@ func arrayInjector( parms *interface{}, pA *ActionInfo )(error) {
 	*pA = pParms.actionList[pParms.pos]
 	pParms.pos++
 	return nil
+}
+
+func doNothing002() {
+	fmt.Println( "doNothing" ); // just so it doesn't complain about importing fmt when I remove all prints
 }
 
 	
