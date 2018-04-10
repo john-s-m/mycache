@@ -33,7 +33,7 @@ func TestNewRandomActor( t *testing.T) {
 	}
 }
 
-func TestrandomInjector(t *testing.T) {
+func TestRandomInjector(t *testing.T) {
 	pAction := NewRandomActor(100)
 
 	var i int = 0
@@ -58,7 +58,7 @@ func TestrandomInjector(t *testing.T) {
 		if ( pAction.ActionValues.Action != 'r' ) && ( pAction.ActionValues.Action != 'w' ) {
 			t.Errorf( "TestrandomInjector - Invalid Action: %d\n", pAction.ActionValues.Action )
 		}
-		if ( pAction.ActionValues.Value == nil ) {
+		if ( pAction.ActionValues.Value == nil ) && ( pAction.ActionValues.Action == 'w' ) {
 			t.Errorf( "TestrandomInjector - nil Value\n" )
 		}
 		i++

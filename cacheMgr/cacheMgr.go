@@ -164,8 +164,26 @@ func (cmm *CacheMapMultiplex) AddReader() ( int, error ) {
 func (cmm *CacheMapMultiplex) unlockForward( inputCh chan int, outputCh chan int ) {
 	for {
 		select {
-		case <-inputCh:
+		case i := <-inputCh:
+			if ( i == -1 ) {
+				fmt.Println( "unlockForward exiting" )
+				return
+			}
 		case outputCh <- 1:
+		}
+	}
+}
+
+func (cmm *CacheMapMultiplex) TerminateForwardGR() {
+	fmt.Println( "terminating unlockForward threads" )
+	for _, ch := range cmm.unlockChArray {
+		for {
+			select {
+			case <-ch:
+			default:
+				ch <- -1
+				break;
+			}
 		}
 	}
 }

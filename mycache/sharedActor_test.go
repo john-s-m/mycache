@@ -3,10 +3,9 @@ package main
 import (
 	"testing"
 	"mycache/cacheMgr"
-	"fmt"
 )
 
-func TestmultiplexActor(t *testing.T) {
+func TestMultiplexActor(t *testing.T) {
 	var actionArray = []ActionInfo {
 		{'w', 1, 1},
 		{'w', 2, 2},
@@ -45,8 +44,10 @@ func TestmultiplexActor(t *testing.T) {
 	cmm.StartAllRoutines()
 
 	doneCh := make(chan int)
-	multiplexActor( cmm, pAction, 0, doneCh )
-
+	go multiplexActor( cmm, pAction, 0, doneCh )
+	<- doneCh
+//	cmm.TerminateForwardGR()
+	
 	for i:=1; i<=10; i++ {
 		if  ( cmm.SharedMap[i].Value.(int) != i ) {
 			t.Errorf( "TestmultiplexActor - data mismatch for key %d: %v\n", i, cmm.SharedMap[i].Value )
