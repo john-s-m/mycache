@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"mycache/cacheMgr"
+	"errors"
 )
 
 func initCache(initFile string, cacheItems map[int]cacheMgr.CacheItem) error {
@@ -15,7 +16,6 @@ func initCache(initFile string, cacheItems map[int]cacheMgr.CacheItem) error {
 	var sval *string
 	var cItem *cacheMgr.CacheItem
 
-	fmt.Println(initFile)
 	f, err := os.Open(initFile)
 	if err != nil {
 		return (err)
@@ -48,6 +48,10 @@ func initCache(initFile string, cacheItems map[int]cacheMgr.CacheItem) error {
 				continue
 			}
 			cItem = cacheMgr.NewCacheItem( *sval, false )
+
+		default:
+			s := fmt.Sprintf( "Invalid initialization file format: %s", initFile )
+			return( errors.New( s ) )
 		}
 		cacheItems[key] = *cItem
 	}

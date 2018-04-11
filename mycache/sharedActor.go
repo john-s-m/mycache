@@ -1,77 +1,51 @@
 package main
 
 import (
-	"bufio"
 	"fmt"
-	"os"
 	"mycache/cacheMgr"
 )
 
-func sharedActor( cm *cacheMgr.CacheMap, dataFilePrefix string, goRoutineId int, doneCh chan int ) {
-	var dataFile string
 
-	dataFile = fmt.Sprintf( "%s%d.dat", dataFilePrefix, goRoutineId )
-	f, err := os.Open(dataFile)
-	if err != nil {
-		return
-	}
-	defer f.Close()
 
-//	fmt.Printf( "Opened %s\n", dataFile )
-	scanner := bufio.NewScanner(f)
-	scanner.Split(bufio.ScanLines)
+func serializedActor( cm *cacheMgr.CacheMap, pAction *ActionItem, goRoutineId int, doneCh chan int ) {
+	for {
+		err := pAction.Injector( &(pAction.Parameters), &(pAction.ActionValues) )
+		if ( err != nil ) {
+			fmt.Println( err.Error() )
+			break
+		}
 
-	var value    interface{}
-	var key      int
-	var action   byte
-
-	for readAction( scanner, &action, &key, &value ) {
-		switch action {
+		switch pAction.ActionValues.Action {
 		case 'r':
-			fmt.Printf( "read results  key: %d    value:%v\n", key, cm.Reader(key) )
+			fmt.Printf( "read results  key: %d    value:%v\n", pAction.ActionValues.Key, cm.Reader(pAction.ActionValues.Key) )
 			
 		case 'w':
-			cm.Writer( key, value )
+			cm.Writer( pAction.ActionValues.Key, pAction.ActionValues.Value )
 		}
 	}
 	doneCh<- 1;
 }
 
 
-func multiplexActor( cmm *cacheMgr.CacheMapMultiplex, dataFilePrefix string, readerId int, doneCh chan int ) {
-	var dataFile string
+func multiplexActor( cmm *cacheMgr.CacheMapMultiplex, pAction *ActionItem, readerId int, doneCh chan int ) {
+	for {
+		err := pAction.Injector( &(pAction.Parameters), &(pAction.ActionValues) )
+		if ( err != nil ) {
+			fmt.Println( err.Error() )
+			break
+		}
 
-	dataFile = fmt.Sprintf( "%s%d.dat", dataFilePrefix, readerId )
-	f, err := os.Open(dataFile)
-	if err != nil {
-		return
-	}
-	defer f.Close()
-
-//	fmt.Printf( "Opened %s\n", dataFile )
-	scanner := bufio.NewScanner(f)
-	scanner.Split(bufio.ScanLines)
-
-	var value    interface{}
-	var key      int
-	var action   byte
-
-	if ( err != nil ) {
-		fmt.Printf( "Failed to add new reader, go routine multiplexActor exiting: %s\n", err )
-		doneCh<- 1;
-		return
-	}
-
-	for readAction( scanner, &action, &key, &value ) {
-		switch action {
+		switch pAction.ActionValues.Action {
 		case 'r':
-			val, err := cmm.Reader(key, readerId)
+			val, err :=
+			cmm.Reader(pAction.ActionValues.Key, readerId)
 			if ( err == nil ) {
-				fmt.Printf( "read results  key: %d    value:%v\n", key, val )
+				fmt.Printf( "read results  key: %d    value:%v\n", pAction.ActionValues.Key, val )
 			}
 			
 		case 'w':
-			cmm.Writer( key, value, readerId )
+			fmt.Printf( "writing key:%d  value: %d\n", pAction.ActionValues.Key, pAction.ActionValues.Value )
+			cmm.Writer( pAction.ActionValues.Key, pAction.ActionValues.Value, readerId )
 		}
 	}
 	doneCh<- 1;

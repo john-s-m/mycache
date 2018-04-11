@@ -1,58 +1,28 @@
 package main
 
 import (
-	"bufio"
-	"fmt"
-	"os"
+	"mycache/cacheMgr"	
+	"testing"
+	"strings"
 )
 
-func initCache_test(initFile string, cacheItems *map[int]cacheItem) bool {
-	fmt.Println(initFile)
-	f, err := os.Open(initFile)
-	if err != nil {
-		return (err)
+func TestInitCache( t *testing.T) {
+	initFile := "testfile.dat"
+
+	cm := cacheMgr.NewCacheMapStruct()
+
+	err := initCache( initFile, cm.SharedMap )
+	if ( err != nil ) && ( strings.Compare( err.Error(), "EOF" ) != 0 ) {
+		t.Errorf( "TestinitCache - got Error initializing Cache: %s\n", err.Error() )
+		return
 	}
-	defer f.Close()
 
-	scanner := bufio.NewScanner(f)
-	scanner.Split(bufio.ScanLines)
-	for scanner.Scan() {
-		var key int
-		var ival int
-		var fval float64
-		var c byte
-		var sval *string
-
-		_, err = fmt.Sscanf(scanner.Text(), "%c", &c)
-		switch c {
-		case 'i', 'd':
-			_, err = fmt.Sscanf(scanner.Text(), "%c%d%d", &c, &key, &ival)
-			if err != nil {
-				continue
-			}
-			if ( *cachItems[key].value != ival || *cachItems[key].readCh == nil || *cachItems[key].writeCh == nil ) {
-				return( false )
-			}
-
-		case 'f':
-			_, err = fmt.Sscanf(scanner.Text(), "%c%d%f", &c, &key, &fval)
-			if err != nil {
-				continue
-			}
-			if ( *cachItems[key] != fval || *cachItems[key].readCh == nil || *cachItems[key].writeCh == nil ) {
-				return( false )
-			}
-
-		case 's':
-			sval = new(string)
-			_, err = fmt.Sscanf(scanner.Text(), "%c%d%s", &c, &key, sval)
-			if err != nil {
-				continue
-			}
-			if ( *cachItems[key] != sval  || *cachItems[key].readCh == nil || *cachItems[key].writeCh == nil ) {
-				return( false )
-			}
+	for r := range cm.SharedMap {
+		if ( r < 0 ) || ( r > 100 ) {
+			t.Errorf( "TestinitCache - Key out of range: %d\n", r )
+		}
+		if ( cm.SharedMap[r].Value == nil ) {
+			t.Errorf( "TestinitCache - nil Value for key: %d\n", r )
 		}
 	}
-	return( true )
 }
