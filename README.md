@@ -45,7 +45,7 @@ mycache options:
     Will read the specified file and use it to initialize the cache.  The format of the file is one row per key value
     pair to be initialized.  Each row has the following syntax
     
-      \<one character either i, s, or f\> \<integer key\> \<value\>
+      <one character either i, s, or f> <integer key> <value>
       
       i specifies an integer value, s a string value, f a float value
       
