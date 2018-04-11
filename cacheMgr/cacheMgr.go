@@ -154,14 +154,14 @@ func NewCacheMapMultiplex( ) *CacheMapMultiplex {
 	return( cmm )
 }
 
-func (cmm *CacheMapMultiplex) AddReader() ( int, error ) {
+func (cmm *CacheMapMultiplex) NewMultiplexReaderLock() ( int, error ) {
 	cmm.lockChArray = append( cmm.lockChArray, make( chan int ) )
 	cmm.unlockChArray = append( cmm.unlockChArray, make( chan int ) )
 	i := len(cmm.lockChArray) - 1
 	return i, nil
 }
 	
-func (cmm *CacheMapMultiplex) unlockForward( inputCh chan int, outputCh chan int ) {
+func (cmm *CacheMapMultiplex) lockManager( inputCh chan int, outputCh chan int ) {
 	var isLocked bool = true
 	
 	for {
@@ -185,8 +185,8 @@ func (cmm *CacheMapMultiplex) unlockForward( inputCh chan int, outputCh chan int
 	}
 }
 
-func (cmm *CacheMapMultiplex) TerminateForwardGR() {
-	fmt.Println( "terminating unlockForward threads" )
+func (cmm *CacheMapMultiplex) TerminateLockManagers() {
+	fmt.Println( "terminating lockManager threads" )
 	for _, ch := range cmm.unlockChArray {
 		for {
 			select {
@@ -292,12 +292,12 @@ func (cmm *CacheMapMultiplex) Inserter( key int, val interface{}, readerId int )
 	return cmm.Writer( key, val, readerId )
 }
 
-func (cmm *CacheMapMultiplex) StartAllRoutines() error {
+func (cmm *CacheMapMultiplex) StartLockManagerThreads() error {
 	for i, _ := range cmm.lockChArray {
-		go cmm.unlockForward( cmm.unlockChArray[i], cmm.lockChArray[i] )
+		go cmm.lockManager( cmm.unlockChArray[i], cmm.lockChArray[i] )
 	}
 
-	go cmm.unlockForward( cmm.writeUnlockCh, cmm.writeLockCh )
+	go cmm.lockManager( cmm.writeUnlockCh, cmm.writeLockCh )
 	
 	return ( cmm.WriteUnlock( -1 ) )
 }

@@ -40,13 +40,13 @@ func TestMultiplexActor(t *testing.T) {
 		return
 	}
 
-	cmm.AddReader()
-	cmm.StartAllRoutines()
+	cmm.NewMultiplexReaderLock()
+	cmm.StartLockManagerThreads()
 
 	doneCh := make(chan int)
 	go multiplexActor( cmm, pAction, 0, doneCh )
 	<- doneCh
-//	cmm.TerminateForwardGR()
+//	cmm.TerminateLockManagers()
 	
 	for i:=1; i<=10; i++ {
 		if  ( cmm.SharedMap[i].Value.(int) != i ) {
