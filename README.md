@@ -9,19 +9,19 @@ read and write actions to the cache.
 I recommend random actions.  If you choose random actions, then you can set an arbitrary number of threads and read/write
 actions for each thread.
 
-If you use files, you will need a file for every thread titled datafile<thread number>.dat with thread number starting at 0
+If you use files, you will need a file for every thread titled datafile\<thread number\>.dat with thread number starting at 0
 For example datafile0.dat through datafile9 are included, more threads will require more files
   
 You can also specify a file to initialize the cache, an initialization file is included, initData.dat
 
 mycache options:
 
-  -t <number of threads as an integer>
+  -t \<number of threads as an integer\>
   
     specifies the number of threads
     
     
-  -e <number read/write actions as an integer>
+  -e \<number read/write actions as an integer\>
   
     specifies the number of read/write actions/events that each thread should execute
     
@@ -45,7 +45,7 @@ mycache options:
     Will read the specified file and use it to initialize the cache.  The format of the file is one row per key value pair to be 
     initialized.  Each row has the following syntax
     
-      <one character either i, s, or f> <integer key> <value>
+      \<one character either i, s, or f\> \<integer key\> \<value\>
       
       i specifies an integer value, s a string value, f a float value
       
