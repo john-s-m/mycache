@@ -13,7 +13,8 @@ func main() {
 	var useRandomizer bool = false
 	var count int = 10
 	var eventCount = 100
-
+	var initFile string
+	
 	for a := range os.Args {
 		switch {
 		case strings.Compare( os.Args[a], "-m") == 0 :
@@ -22,11 +23,13 @@ func main() {
 			useRandomizer = true
 		case strings.Compare( os.Args[a], "-e") == 0 :
 			a++
-			fmt.Printf( "a: %d  arg: %s\n", a, os.Args[a] )
 			eventCount, _ = strconv.Atoi( os.Args[a] )
 		case strings.Compare( os.Args[a], "-t") == 0 :
 			a++
 			count, _ = strconv.Atoi( os.Args[a] )
+		case strings.Compare( os.Args[a], "-i") == 0 :
+			a++
+			initFile = os.Args[a]
 		}
 	}
 	
@@ -53,13 +56,15 @@ func main() {
 		mapPointer = &cmm.SharedMap
 	}
 	
-	ec = initCache("initData.dat", *mapPointer)
-	if ec != nil {
-		fmt.Println("Failed to read initialization data:", ec.Error())
-		return
+	if ( initFile != "" ) {
+		ec = initCache(initFile, *mapPointer)
+		if ec != nil {
+			fmt.Println("Failed to read initialization data:", ec.Error())
+			return
+		}
+		fmt.Println(*mapPointer)
 	}
-	fmt.Println(*mapPointer)
-
+	
 	var pActionList []*ActionItem
 
 	fmt.Printf( "Args: Serial:%t Rand:%t Threads:%d  Events:%d\n", useSerializer, useRandomizer, count, eventCount )
