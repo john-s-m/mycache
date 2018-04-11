@@ -40,7 +40,7 @@ mycache options:
     complete, then freeing all other readers and writers.
     
     
-  -i <initialization filename>
+  -i \<initialization filename\>
   
     Will read the specified file and use it to initialize the cache.  The format of the file is one row per key value
     pair to be initialized.  Each row has the following syntax
