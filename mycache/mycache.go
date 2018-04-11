@@ -100,10 +100,10 @@ func main() {
 		fmt.Println( "Using Multiplexer" )
 
 		for i = 0; i < count; i++ {
-			cmm.AddReader()
+			cmm.NewMultiplexReaderLock()
 		}
 		fmt.Println( "starting" );
-		cmm.StartAllRoutines()
+		cmm.StartLockManagerThreads()
 		fmt.Println( "all routines started" );
 
 		for i = 0; i < count; i++ {
