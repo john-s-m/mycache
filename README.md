@@ -3,12 +3,16 @@ Go exercise to implement a shared cache
 
 download and go to mycache directory to compile
 
-the program can run from the included files to inject r and write actions to the cache, or it can be run with rand actions injected
-I recommend random actions, then you can set the number of threads and number of read/write events/actions each thread will execute
-if you use files you need a file for every thread titled datafile<thread number>.dat with thread numer starting at 0
-For example datafile0.dat through datafile9 are included, more threads will requie more files
+The program can run eiter by reading read and write actions from files or creating random read and write actions to the cache.
+
+
+I recommend random actions.  If you choose random actions, then you can set an arbitrary number of threads and read/write
+events/actions for each thread.
+
+If you use files, you will need a file for every thread titled datafile<thread number>.dat with thread number starting at 0
+For example datafile0.dat through datafile9 are included, more threads will require more files
   
-You can also specify a file to initialize the thread, and initialization file is included, initData.dat
+You can also specify a file to initialize the cache, an initialization file is included, initData.dat
 
 mycache options:
 
@@ -41,7 +45,7 @@ mycache options:
     Will read the specified file and use it to initialize the cache.  The format of the file is one row per key value pair to be 
     initialized.  Each row has the following syntax
     
-      <one character either i, s, or f> <integer key> <value?
+      <one character either i, s, or f> <integer key> <value>
       
       i specifies an integer value, s a string value, f a float value
       
