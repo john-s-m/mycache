@@ -3,7 +3,7 @@ Go exercise to implement a shared cache
 
 download and go to mycache directory to compile
 
-The program can run eiter by reading read and write actions from files or creating random read and write actions to the cache.
+The program can run either by reading read and write actions from files or creating random read and write actions to the cache.
 
 
 I recommend random actions.  If you choose random actions, then you can set an arbitrary number of threads and read/write
